@@ -4,7 +4,6 @@ from operator import attrgetter
 from mrjob.job import MRJob
 from luigi import Task, Parameter
 
-from mrjob.examples.mr_word_freq_count import MRWordFreqCount
 
 class WaluigiMRJobParameter(Parameter):
     
@@ -20,7 +19,7 @@ class WaluigiTask(Task):
     '''
 
     job_cls = Parameter()
-    runner = WaluigiMRJobParameter('-r', default='local') 
+    runner = WaluigiMRJobParameter('-r', default='') 
 
     def run(self):
         opts = self.make_mrjob_opts()
@@ -43,16 +42,10 @@ class WaluigiTask(Task):
     def make_mrjob_opts(self):
         prms_and_flags = self.get_mrjob_params_and_flags()
         base_params = list(itertools.chain(*((flag, getattr(self, param_name)) for param_name, flag
-            in prms_and_flags)))
+            in prms_and_flags if getattr(self, param_name))))
         # now add special params: input and ouput
         # yikes, existence of path field not really enforced
         input_files = map(attrgetter('path'), self.input())
         output_dir = self.output().path 
         assert input_files and output_dir, "Must define output and dependencies or direct input"
         return base_params + ['-o', output_dir] + input_files
-
-
-        
-if __name__ == '__main__':
-    t = WaluigiTask(runner='df', job_cls=MRWordFreqCount)
-    t.run()
