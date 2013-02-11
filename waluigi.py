@@ -1,5 +1,6 @@
 from itertools import chain
 from operator import attrgetter
+import json
 
 from luigi import Task, Parameter
 
@@ -20,14 +21,16 @@ class WaluigiTask(Task):
     job_cls = Parameter()
     runner = WaluigiMRJobParameter('-r', default='')
     conf_path = WaluigiMRJobParameter('-c', default='')
+    no_output = WaluigiMRJobParameter('--no-output')
+    jobconf = Parameter(significant=False)
 
     def __init__(self, *args, **kwargs):
         super(WaluigiTask, self).__init__(*args, **kwargs)
-        jobconf = (kwargs.get('jobconf', {}))
+        # jobconf needs special treatment because we can pass more than one value for it
+        jobconf = json.loads(kwargs.get('jobconf', "{}"))
         self.opts = self.make_mrjob_opts() + \
             list(chain(*[('--jobconf', '%s=%s' % (k,v)) for k,v in jobconf.items()]))
         # print self.opts
-
 
     def run(self):
         job = self.job_cls(args=self.opts)
@@ -46,7 +49,11 @@ class WaluigiTask(Task):
 
     def make_mrjob_opts(self):
         prms_and_flags = self.get_mrjob_params_and_flags()
-        base_params = list(chain(*((flag, getattr(self, param_name)) for param_name, flag
+        def get_param_repr(param_name):
+            # This allows for boolean params to be passed as just a name
+            val = getattr(self, param_name)
+            return '' if val is True else val
+        base_params = list(chain(*((flag, get_param_repr(param_name)) for param_name, flag
             in prms_and_flags if getattr(self, param_name))))
         # now add special params: input and ouput
         # yikes, existence of path field not really enforced
