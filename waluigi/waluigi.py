@@ -60,4 +60,4 @@ class WaluigiTask(Task):
         input_files = map(attrgetter('path'), self.input())
         output_dir = self.output().path 
         assert input_files and output_dir, "Must define output and dependencies or direct input"
-        return base_params + ['-o', output_dir] + input_files
+        return filter(bool, base_params + input_files + ['-o', output_dir])
