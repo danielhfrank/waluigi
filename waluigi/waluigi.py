@@ -3,11 +3,7 @@ from operator import attrgetter
 
 from luigi import Task
 
-MRJOB_FLAGS = set(['-r', '-c', '--no-output', '--jobconf'])
-
 def to_opts(flag, value):
-    if flag not in MRJOB_FLAGS:
-        return []
     if isinstance(value, bool):
         return [flag] if value else []
     elif isinstance(value, dict):
@@ -41,7 +37,7 @@ class WaluigiTask(Task):
 
     def make_mrjob_opts(self, *args, **kwargs):
         base_opts = self.mrjob_opts()
-        base_opts.update(kwargs)
+        base_opts.update((k,v) for k,v in kwargs.iteritems() if k.startswith('-'))
         opts_list = list(chain(*[to_opts(k,v) for k,v in base_opts.iteritems()]))
         # now add special params: input and ouput
         # yikes, existence of path field not really enforced
