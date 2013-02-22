@@ -22,7 +22,11 @@ class WaluigiTask(Task):
     Class that runs a MRJob from a Luigi workflow
     '''
 
-    job_cls = NotImplemented
+    def job_cls(self):
+        '''
+        Override this to return the right mrjob class (not instance)
+        '''
+        raise NotImplementedError
 
     def mrjob_opts(self):
         return {}
@@ -31,14 +35,14 @@ class WaluigiTask(Task):
         self.opts = self.make_mrjob_opts(*args, **kwargs)
 
     def run(self):
-        job = self.job_cls(args=self.opts)
+        job = self.job_cls()(args=self.opts)
         jobrunner = job.make_runner()
         jobrunner.run()
 
     def make_mrjob_opts(self, *args, **kwargs):
         base_opts = self.mrjob_opts()
         base_opts.update(kwargs)
-        opts_list = list(chain(*[to_opts(k,v) for k,v in base_opts]))
+        opts_list = list(chain(*[to_opts(k,v) for k,v in base_opts.iteritems()]))
         # now add special params: input and ouput
         # yikes, existence of path field not really enforced
         input_files = map(attrgetter('path'), self.input())
