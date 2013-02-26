@@ -28,6 +28,7 @@ class WaluigiTask(Task):
         return {}
 
     def __init__(self, *args, **kwargs):
+        super(WaluigiTask, self).__init__(*args, **kwargs)
         self.opts = self.make_mrjob_opts(*args, **kwargs)
 
     def run(self):
