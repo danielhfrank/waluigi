@@ -5,8 +5,10 @@ from mrjob.examples.mr_word_freq_count import MRWordFreqCount
 
 class DF(WaluigiTask):
 
-    def job_cls(self):
-        return MRWordFreqCount
+    # def job_cls(self):
+    #     return MRWordFreqCount
+
+    job_cls = MRWordFreqCount
 
     def mrjob_opts(self):
         return {

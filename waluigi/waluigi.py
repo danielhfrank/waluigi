@@ -18,6 +18,7 @@ class WaluigiTask(Task):
     Class that runs a MRJob from a Luigi workflow
     '''
 
+    @property
     def job_cls(self):
         '''
         Override this to return the right mrjob class (not instance)
@@ -32,7 +33,7 @@ class WaluigiTask(Task):
         self.opts = self.make_mrjob_opts(*args, **kwargs)
 
     def run(self):
-        job = self.job_cls()(args=self.opts)
+        job = self.job_cls(args=self.opts)
         jobrunner = job.make_runner()
         jobrunner.run()
 
