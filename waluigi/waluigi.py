@@ -1,7 +1,7 @@
 from itertools import chain
-from operator import attrgetter
 
 from luigi import Task
+from luigi.hdfs import HdfsTarget
 
 def to_opts(flag, value):
     if isinstance(value, bool):
@@ -12,6 +12,12 @@ def to_opts(flag, value):
     else:
         assert isinstance(value, str)
         return [flag, value]
+
+def get_mrjob_friendly_path(target):
+    path = target.path
+    if isinstance(target, HdfsTarget) and not path.startswith('hdfs://'):
+        path = 'hdfs://' + path
+    return path
 
 class WaluigiTask(Task):
     '''
@@ -43,7 +49,7 @@ class WaluigiTask(Task):
         opts_list = list(chain(*[to_opts(k,v) for k,v in base_opts.iteritems()]))
         # now add special params: input and ouput
         # yikes, existence of path field not really enforced
-        input_files = map(attrgetter('path'), self.input())
+        input_files = map(get_mrjob_friendly_path, self.input())
         output_dir = self.output().path 
         assert input_files and output_dir, "Must define output and dependencies or direct input"
         return opts_list + input_files + ['-o', output_dir]

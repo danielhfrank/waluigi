@@ -24,5 +24,5 @@ try:
 except ImportError:
     raise ImportError("luigi library not installed. Install luigi. https://github.com/spotify/luigi")
 
-version = "0.3"
-version_info = (0, 3)
+version = "0.3.1"
+version_info = (0, 3, 1)
